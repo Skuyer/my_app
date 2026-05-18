@@ -1,4 +1,4 @@
-<h1>Blog Articles</h1>
+<h1>Blog Articles </h1>
 
 <?php foreach ($articles as $article): ?>
     <article>
