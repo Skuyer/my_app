@@ -6,6 +6,7 @@
     "homepage": "https://cakephp.org",
     "require": {
         "php": ">=8.2",
+        "ext-pdo_mysql": "*",
         "cakephp/cakephp": "5.3.*",
         "ext-intl": "*",
         "cakephp/migrations": "^5.0",
