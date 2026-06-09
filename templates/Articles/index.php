@@ -1,9 +1,12 @@
 <h1>Artículos</h1>
+
+<p><?= $this->Html->link('Agregar Artículo', ['action' => 'add'], ['class' => 'button']) ?></p>
+
 <table>
     <tr>
         <th>Título</th>
         <th>Creado</th>
-    </tr>
+        <th>Acciones</th> </tr>
 
     <?php foreach ($articles as $article): ?>
     <tr>
@@ -15,8 +18,7 @@
         </td>
         <td>
             <?= $this->Html->link('Editar', ['action' => 'edit', $article->slug]) ?>
-        </td>
-        <td>
+            | 
             <?= $this->Form->postLink('Eliminar', ['action' => 'delete', $article->slug], ['confirm' => '¿Estás seguro?']) ?>
         </td>
     </tr>
