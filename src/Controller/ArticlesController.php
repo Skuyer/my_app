@@ -21,7 +21,9 @@ class ArticlesController extends AppController
 
     public function view($slug = null)
     {
-
+        if (empty($slug)) {
+            throw new \Cake\Http\Exception\NotFoundException(__('Artículo no encontrado'));
+        }
         $article = $this->Articles->findBySlug($slug)->firstOrFail();
         $this->set(compact('article'));
     }
