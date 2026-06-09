@@ -48,7 +48,12 @@ class ArticlesController extends AppController
 
     public function edit($slug = null)
     {
+        if (empty($slug)) {
+            throw new \Cake\Http\Exception\NotFoundException(__('Artículo no encontrado'));
+        }
+
         $article = $this->Articles->findBySlug($slug)->firstOrFail();
+        
         if ($this->request->is(['patch', 'post', 'put'])) {
             $article = $this->Articles->patchEntity($article, $this->request->getData());
             if ($this->Articles->save($article)) {
@@ -65,7 +70,13 @@ class ArticlesController extends AppController
     {
         $this->request->allowMethod(['post', 'delete']);
         
+        if (empty($slug)) {
+            throw new \Cake\Http\Exception\NotFoundException(__('Artículo no encontrado'));
+        }
+
+
         $article = $this->Articles->findBySlug($slug)->firstOrFail();
+        
         if ($this->Articles->delete($article)) {
             $this->Flash->success(__('The article has been deleted.'));
         } else {
