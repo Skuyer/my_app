@@ -1,9 +1,19 @@
-<h1>Agregar Artículo</h1>
-<?php
-    echo $this->Form->create($article);
-    // Hardcodeamos el autor por ahora
-    echo $this->Form->control('title', ['label' => 'Título']);
-    echo $this->Form->control('body', ['rows' => '3', 'label' => 'Contenido']);
-    echo $this->Form->button(__('Guardar artículo'));
-    echo $this->Form->end();
-?>
+<div class="articles form content">
+    <?= $this->Form->create($article) ?>
+    <fieldset>
+        <legend><?= __('Añadir Artículo') ?></legend>
+        <?php
+            // El primer parámetro DEBE ser el nombre exacto de la columna en tu BD ('title')
+            echo $this->Form->control('title', ['label' => 'Título del Artículo']);
+            
+            // El primer parámetro DEBE ser el nombre exacto de la columna en tu BD ('body')
+            echo $this->Form->control('body', ['rows' => '5', 'label' => 'Contenido']);
+            
+            // El primer parámetro DEBE ser el nombre exacto de la columna en tu BD ('published')
+            echo $this->Form->control('published', ['label' => '¿Publicar inmediatamente?']);
+            echo $this->Form->control('tags._ids', ['options' => $tags]);
+        ?>
+    </fieldset>
+    <?= $this->Form->button(__('Guardar Artículo')) ?>
+    <?= $this->Form->end() ?>
+</div>

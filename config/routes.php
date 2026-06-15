@@ -76,6 +76,18 @@ return function (RouteBuilder $routes): void {
          * See https://book.cakephp.org/5/en/development/routing.html#fallbacks-method for more information
          */
         $builder->fallbacks();
+        // En config/routes.php dentro del scope de rutas de la app:
+        $builder->scope('/', function (RouteBuilder $routes) {
+    // ... Tus otras rutas existentes ...
+
+    // Nueva ruta para buscar artículos por etiquetas
+    $routes->connect(
+            '/articles/tagged/*',
+            ['controller' => 'Articles', 'action' => 'tags']
+        );
+
+    $routes->fallbacks();
+});
     });
 
     /*
