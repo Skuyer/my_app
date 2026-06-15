@@ -174,8 +174,10 @@ class Application extends BaseApplication
             'identifier' => [
                 'className' => 'Authentication.Password',
                 'fields' => $fields,
+                // 🚀 CONFIGURACIÓN FINAL: Forzamos texto plano usando Fallback sin algoritmos
                 'passwordHasher' => [
-                    'className' => new \Authentication\PasswordHasher\NoopPasswordHasher(),
+                    'className' => 'Authentication.Fallback',
+                    'hashers' => []
                 ]
             ],
         ]);
