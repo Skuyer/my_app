@@ -111,28 +111,29 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
      */
     public function getAuthenticationService(ServerRequestInterface $request): AuthenticationServiceInterface
     {
-        $authenticationService = new AuthenticationService([
-            'unauthenticatedRedirect' => '/users/login', // Redirección si no está logueado
+        $authenticationService = new Service = new AuthenticationService([
+            'unauthenticatedRedirect' => '/users/login',
             'queryParam' => 'redirect',
         ]);
 
-        // Cargar los identificadores (en este caso, Sesión primero)
+        // 1. Cargar el autenticador de sesión
         $authenticationService->loadAuthenticator('Authentication.Session');
         
-        // Configurar el formulario de Login
+        // 2. Configurar el Formulario pasando el identificador DIRECTAMENTE dentro de sus opciones
         $authenticationService->loadAuthenticator('Authentication.Form', [
-            'fields' => [
-                'username' => 'email', // Usamos el campo 'email' como nombre de usuario
-                'password' => 'password',
-            ],
-            'loginUrl' => '/users/login',
-        ]);
-
-        // Cargar los "Identifiers" para verificar las credenciales en la Base de Datos
-        $authenticationService->loadIdentifier('Authentication.Password', [
             'fields' => [
                 'username' => 'email',
                 'password' => 'password',
+            ],
+            'loginUrl' => '/users/login',
+            // Configuración moderna para evitar el aviso de "Deprecated"
+            'identifiers' => [
+                'Authentication.Password' => [
+                    'fields' => [
+                        'username' => 'email',
+                        'password' => 'password',
+                    ],
+                ],
             ],
         ]);
 
