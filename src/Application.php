@@ -50,7 +50,7 @@ use Authorization\Policy\OrmResolver;
  * @extends \Cake\Http\BaseApplication<\App\Application>
  */
 class Application extends BaseApplication
-    implements AuthenticationServiceProviderInterface,
+    implements AuthenticationServiceProviderInterface 
 {
     /**
      * Load all the application configuration and bootstrap logic.
@@ -138,7 +138,7 @@ class Application extends BaseApplication
    /**
      * Returns an authentication service instance.
      *
-     * @param \Psr\\Http\\Message\\ServerRequestInterface $request The request.
+     * @param \Psr\Http\Message\ServerRequestInterface $request The request.
      * @return \Authentication\AuthenticationServiceInterface
      */
     public function getAuthenticationService(ServerRequestInterface $request): AuthenticationServiceInterface
@@ -174,7 +174,6 @@ class Application extends BaseApplication
             'identifier' => [
                 'className' => 'Authentication.Password',
                 'fields' => $fields,
-                // 🚀 ESTA CONFIGURACIÓN le dice a CakePHP que lea la contraseña en TEXTO PLANO
                 'passwordHasher' => [
                     'className' => 'Authentication.Noop',
                 ]
