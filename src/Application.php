@@ -175,7 +175,7 @@ class Application extends BaseApplication
                 'className' => 'Authentication.Password',
                 'fields' => $fields,
                 'passwordHasher' => [
-                    'className' => 'Authentication.Noop',
+                    'className' => \Authentication\PasswordHasher\NoopPasswordHasher::class,
                 ]
             ],
         ]);
