@@ -51,7 +51,6 @@ use Authorization\Policy\OrmResolver;
  */
 class Application extends BaseApplication
     implements AuthenticationServiceProviderInterface,
-               AuthorizationServiceProviderInterface
 {
     /**
      * Load all the application configuration and bootstrap logic.
@@ -177,7 +176,7 @@ class Application extends BaseApplication
                 'fields' => $fields,
                 // 🚀 ESTA CONFIGURACIÓN le dice a CakePHP que lea la contraseña en TEXTO PLANO
                 'passwordHasher' => [
-                    'className' => 'Authentication.None',
+                    'className' => 'Authentication.Noop',
                 ]
             ],
         ]);
