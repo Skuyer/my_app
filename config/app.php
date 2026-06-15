@@ -286,8 +286,8 @@ return [
          * in app_local.php depending on the application's needs.
          */
         'default' => [
-            'className' => 'Cake\Database\Connection',
-            'driver' => 'Cake\Database\Driver\Mysql',
+            'className' => Connection::class,
+            'driver' => Mysql::class,
             'persistent' => false,
             'timezone' => 'UTC',
 
@@ -323,21 +323,6 @@ return [
              * which is the recommended value in production environments
              */
             //'init' => ['SET GLOBAL innodb_stats_on_metadata = 0'],
-            'username' => env('DB_USERNAME', 'root'), // Cambiado según la imagen
-            'password' => env('DB_PASSWORD', 'qvTPmWsVcXjCxSyIMKTZKgrdMMCnIgpP'),
-
-            'database' => env('DB_DATABASE', 'railway'),   // Cambiado según la imagen
-            'port' => env('DB_PORT', '3308'),
-            /*
-             * If not using the default 'public' schema with the PostgreSQL driver
-             * set it here.
-             */
-            //'schema' => 'myapp',
-
-            /*
-             * You can use a DSN string to set the entire configuration
-             */
-            'url' => env('DATABASE_URL', null),
         ],
 
         /*

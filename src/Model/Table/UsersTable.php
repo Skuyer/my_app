@@ -11,10 +11,12 @@ use Cake\Validation\Validator;
 /**
  * Users Model
  *
+ * @property \App\Model\Table\ArticlesTable&\Cake\ORM\Association\HasMany $Articles
+ *
  * @method \App\Model\Entity\User newEmptyEntity()
  * @method \App\Model\Entity\User newEntity(array $data, array $options = [])
  * @method array<\App\Model\Entity\User> newEntities(array $data, array $options = [])
- * @method \App\Model\Entity\User get($primaryKey, array<string, mixed> $options = [])
+ * @method \App\Model\Entity\User get(mixed $primaryKey, array|string $finder = 'all', \Psr\SimpleCache\CacheInterface|string|null $cache = null, \Closure|string|null $cacheKey = null, mixed ...$args)
  * @method \App\Model\Entity\User findOrCreate($search, ?callable $callback = null, array $options = [])
  * @method \App\Model\Entity\User patchEntity(\Cake\Datasource\EntityInterface $entity, array $data, array $options = [])
  * @method array<\App\Model\Entity\User> patchEntities(iterable $entities, array $data, array $options = [])
@@ -40,11 +42,14 @@ class UsersTable extends Table
         parent::initialize($config);
 
         $this->setTable('users');
-        $this->setDisplayField('username');
+        $this->setDisplayField('email');
         $this->setPrimaryKey('id');
 
-        // Agrega automáticamente las fechas de creación y modificación (created y modified)
         $this->addBehavior('Timestamp');
+
+        $this->hasMany('Articles', [
+            'foreignKey' => 'user_id',
+        ]);
     }
 
     /**
@@ -56,37 +61,29 @@ class UsersTable extends Table
     public function validationDefault(Validator $validator): Validator
     {
         $validator
-            ->integer('id')
-            ->allowEmptyString('id', null, 'create');
-
-        $validator
-            ->scalar('username')
-            ->maxLength('username', 50)
-            ->notEmptyString('username', 'El nombre de usuario es obligatorio.')
-            ->add('username', 'unique', [
-                'rule' => 'validateUnique', 
-                'provider' => 'table', 
-                'message' => 'Este nombre de usuario ya está en uso.'
-            ]);
+            ->email('email')
+            ->requirePresence('email', 'create')
+            ->notEmptyString('email');
 
         $validator
             ->scalar('password')
             ->maxLength('password', 255)
-            ->notEmptyString('password', 'La contraseña es obligatoria.');
+            ->requirePresence('password', 'create')
+            ->notEmptyString('password');
 
         return $validator;
     }
 
     /**
-     * Returns a rules checker object that will be used for validating application integrity.
+     * Returns a rules checker object that will be used for validating
+     * application integrity.
      *
-     * @param \Cake\RulesChecker $rules The rules object to be modified.
-     * @return \Cake\RulesChecker
+     * @param \Cake\ORM\RulesChecker $rules The rules object to be modified.
+     * @return \Cake\ORM\RulesChecker
      */
     public function buildRules(RulesChecker $rules): RulesChecker
     {
-        // Regla de aplicación para evitar duplicados a nivel lógico de CakePHP
-        $rules->add($rules->isUnique(['username']), ['errorField' => 'username', 'message' => 'Este nombre de usuario ya está registrado.']);
+        $rules->add($rules->isUnique(['email']), ['errorField' => 'email']);
 
         return $rules;
     }

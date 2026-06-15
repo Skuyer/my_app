@@ -1,14 +1,15 @@
+<!-- templates/Users/login.php -->
 <div class="users form content">
     <?= $this->Flash->render() ?>
-    <h3>Iniciar Sesión</h3>
+    <h3>Login</h3>
     <?= $this->Form->create() ?>
     <fieldset>
-        <legend><?= __('Por favor, introduce tu usuario y contraseña') ?></legend>
-        <?= $this->Form->control('username', ['required' => true, 'label' => 'Usuario']) ?>
-        <?= $this->Form->control('password', ['required' => true, 'label' => 'Contraseña']) ?>
+        <legend><?= __('Please enter your email and password') ?></legend>
+        <?= $this->Form->control('email', ['required' => true]) ?>
+        <?= $this->Form->control('password', ['required' => true]) ?>
     </fieldset>
-    <?= $this->Form->button(__('Ingresar')); ?>
+    <?= $this->Form->button(__('Login')); ?>
     <?= $this->Form->end() ?>
 
-    <?= $this->Html->link("¿No tienes cuenta? Regístrate aquí", ['action' => 'add']) ?>
+    <?= $this->Html->link("Add User", ['action' => 'add']) ?>
 </div>

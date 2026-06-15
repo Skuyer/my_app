@@ -11,6 +11,9 @@ use Cake\Validation\Validator;
 /**
  * Articles Model
  *
+ * @property \App\Model\Table\UsersTable&\Cake\ORM\Association\BelongsTo $Users
+ * @property \App\Model\Table\TagsTable&\Cake\ORM\Association\BelongsToMany $Tags
+ *
  * @method \App\Model\Entity\Article newEmptyEntity()
  * @method \App\Model\Entity\Article newEntity(array $data, array $options = [])
  * @method array<\App\Model\Entity\Article> newEntities(array $data, array $options = [])
@@ -44,11 +47,16 @@ class ArticlesTable extends Table
         $this->setPrimaryKey('id');
 
         $this->addBehavior('Timestamp');
+
+        $this->belongsTo('Users', [
+            'foreignKey' => 'user_id',
+            'joinType' => 'INNER',
+        ]);
         $this->belongsToMany('Tags', [
             'foreignKey' => 'article_id',
             'targetForeignKey' => 'tag_id',
             'joinTable' => 'articles_tags',
-]);
+        ]);
     }
 
     /**
@@ -60,6 +68,10 @@ class ArticlesTable extends Table
     public function validationDefault(Validator $validator): Validator
     {
         $validator
+            ->integer('user_id')
+            ->notEmptyString('user_id');
+
+        $validator
             ->scalar('title')
             ->maxLength('title', 255)
             ->requirePresence('title', 'create')
@@ -68,16 +80,19 @@ class ArticlesTable extends Table
         $validator
             ->scalar('slug')
             ->maxLength('slug', 191)
-            ->allowEmptyString('slug')
+            ->requirePresence('slug', 'create')
+            ->notEmptyString('slug')
             ->add('slug', 'unique', ['rule' => 'validateUnique', 'provider' => 'table']);
 
         $validator
             ->scalar('body')
-            ->allowEmptyString('body');
+            ->requirePresence('body', 'create')
+            ->notEmptyString('body');
 
         $validator
             ->boolean('published')
-            ->allowEmptyString('published');
+            ->requirePresence('published', 'create')
+            ->notEmptyString('published');
 
         return $validator;
     }
@@ -91,29 +106,9 @@ class ArticlesTable extends Table
      */
     public function buildRules(RulesChecker $rules): RulesChecker
     {
-        $rules->add($rules->isUnique(['slug'], ['allowMultipleNulls' => true]), ['errorField' => 'slug']);
+        $rules->add($rules->isUnique(['slug']), ['errorField' => 'slug']);
+        $rules->add($rules->existsIn(['user_id'], 'Users'), ['errorField' => 'user_id']);
 
         return $rules;
-    }
-    public function findTagged(SelectQuery $query, array $tags = []): SelectQuery{
-        $columns = [
-            'Articles.id', 'Articles.user_id', 'Articles.title',
-            'Articles.body', 'Articles.published', 'Articles.created',
-            'Articles.slug',
-        ];
-
-        $query = $query->select($columns)->distinct($columns);
-
-        if (empty($tags)) {
-            // Si no se proveen etiquetas, buscar artículos que no tengan ninguna
-            $query->leftJoinWith('Tags')
-                ->where(['Tags.title IS' => null]);
-        } else {
-            // Buscar artículos que contengan al menos una de las etiquetas provistas
-            $query->innerJoinWith('Tags')
-                ->where(['Tags.title IN' => $tags]);
-        }
-
-        return $query;
     }
 }

@@ -9,12 +9,16 @@ use Cake\ORM\Entity;
  * Article Entity
  *
  * @property int $id
+ * @property int $user_id
  * @property string $title
- * @property string|null $slug
- * @property string|null $body
- * @property bool|null $published
- * @property \Cake\I18n\DateTime|null $created
- * @property \Cake\I18n\DateTime|null $modified
+ * @property string $slug
+ * @property string $body
+ * @property bool $published
+ * @property \Cake\I18n\DateTime $created
+ * @property \Cake\I18n\DateTime $modified
+ *
+ * @property \App\Model\Entity\User $user
+ * @property \App\Model\Entity\Tag[] $tags
  */
 class Article extends Entity
 {
@@ -28,13 +32,14 @@ class Article extends Entity
      * @var array<string, bool>
      */
     protected array $_accessible = [
-        '*' => false,
-        'id' => false,
+        'user_id' => true,
         'title' => true,
-        'slug' => false,
+        'slug' => true,
         'body' => true,
         'published' => true,
         'created' => true,
         'modified' => true,
+        'user' => true,
+        'tags' => true,
     ];
 }

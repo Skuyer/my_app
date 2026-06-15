@@ -29,13 +29,17 @@ use Cake\Http\MiddlewareQueue;
 use Cake\ORM\Locator\TableLocator;
 use Cake\Routing\Middleware\AssetMiddleware;
 use Cake\Routing\Middleware\RoutingMiddleware;
-
-// Clases necesarias para la autenticación
 use Authentication\AuthenticationService;
 use Authentication\AuthenticationServiceInterface;
 use Authentication\AuthenticationServiceProviderInterface;
+use Authentication\Identifier\PasswordIdentifier;
 use Authentication\Middleware\AuthenticationMiddleware;
 use Psr\Http\Message\ServerRequestInterface;
+use Authorization\AuthorizationService;
+use Authorization\AuthorizationServiceInterface;
+use Authorization\AuthorizationServiceProviderInterface;
+use Authorization\Middleware\AuthorizationMiddleware;
+use Authorization\Policy\OrmResolver;
 
 /**
  * Application setup class.
@@ -45,7 +49,9 @@ use Psr\Http\Message\ServerRequestInterface;
  *
  * @extends \Cake\Http\BaseApplication<\App\Application>
  */
-class Application extends BaseApplication implements AuthenticationServiceProviderInterface
+class Application extends BaseApplication
+    implements AuthenticationServiceProviderInterface,
+               AuthorizationServiceProviderInterface
 {
     /**
      * Load all the application configuration and bootstrap logic.
@@ -56,9 +62,6 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
     {
         // Call parent to load bootstrap from files.
         parent::bootstrap();
-        
-        // Carga el plugin de autenticación
-        $this->addPlugin('Authentication');
 
         // By default, does not allow fallback classes.
         FactoryLocator::add('Table', (new TableLocator())->allowFallbackClass(false));
@@ -78,6 +81,8 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
             ->add(new ErrorHandlerMiddleware(Configure::read('Error'), $this))
 
             // Validate Host header to prevent Host Header Injection attacks.
+            // In production, ensures App.fullBaseUrl is configured and validates
+            // the incoming Host header against it.
             ->add(new HostHeaderMiddleware())
 
             // Handle plugin/theme assets like CakePHP normally does.
@@ -86,58 +91,22 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
             ]))
 
             // Add routing middleware.
+            // If you have a large number of routes connected, turning on routes
+            // caching in production could improve performance.
+            // See https://github.com/CakeDC/cakephp-cached-routing
             ->add(new RoutingMiddleware($this))
 
             // Parse various types of encoded request bodies so that they are
             // available as array through $request->getData()
+            // https://book.cakephp.org/5/en/controllers/middleware.html#body-parser-middleware
             ->add(new BodyParserMiddleware())
-
-            // Cross Site Request Forgery (CSRF) Protection Middleware
-            ->add(new CsrfProtectionMiddleware([
-                'httponly' => true,
-            ]))
-
-            // Se añade el middleware de autenticación al final de la cola de CakePHP
             ->add(new AuthenticationMiddleware($this));
 
+        // Cross Site Request Forgery (CSRF) Protection Middleware
+        // https://book.cakephp.org/5/en/security/csrf.html#cross-site-request-forgery-csrf-middleware
+        // ->add(new CsrfProtectionMiddleware());
+
         return $middlewareQueue;
-    }
-
-    /**
-     * Configura el servicio de autenticación para la aplicación.
-     *
-     * @param \Psr\Http\Message\ServerRequestInterface $request La petición actual.
-     * @return \Authentication\AuthenticationServiceInterface
-     */
-    public function getAuthenticationService(ServerRequestInterface $request): AuthenticationServiceInterface
-    {
-        $authenticationService = new AuthenticationService([
-            'unauthenticatedRedirect' => '/users/login',
-            'queryParam' => 'redirect',
-        ]);
-
-        // 1. Cargar el autenticador de sesión
-        $authenticationService->loadAuthenticator('Authentication.Session');
-        
-        // 2. Configurar el Formulario pasando el identificador DIRECTAMENTE dentro de sus opciones
-        $authenticationService->loadAuthenticator('Authentication.Form', [
-            'fields' => [
-                'username' => 'email',
-                'password' => 'password',
-            ],
-            'loginUrl' => '/users/login',
-            // Configuración moderna para evitar el aviso de "Deprecated"
-            'identifiers' => [
-                'Authentication.Password' => [
-                    'fields' => [
-                        'username' => 'email',
-                        'password' => 'password',
-                    ],
-                ],
-            ],
-        ]);
-
-        return $authenticationService;
     }
 
     /**
@@ -145,11 +114,12 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
      *
      * @param \Cake\Core\ContainerInterface $container The Container to update.
      * @return void
+     * @link https://book.cakephp.org/5/en/development/dependency-injection.html#dependency-injection
      */
     public function services(ContainerInterface $container): void
     {
         // Allow your Tables to be dependency injected
-        //$container->delegate(new \Cake\ORM\Locator\TableContainer());
+        // $container->delegate(new \Cake\ORM\Locator\TableContainer());
     }
 
     /**
@@ -157,11 +127,70 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
      *
      * @param \Cake\Event\EventManagerInterface $eventManager
      * @return \Cake\Event\EventManagerInterface
+     * @link https://book.cakephp.org/5/en/core-libraries/events.html#registering-listeners
      */
     public function events(EventManagerInterface $eventManager): EventManagerInterface
     {
         // $eventManager->on(new SomeCustomListenerClass());
 
         return $eventManager;
+    }
+
+    /**
+     * Returns a service provider instance.
+     *
+     * @param \Psr\Http\Message\ServerRequestInterface $request The request.
+     * @return \Authentication\AuthenticationServiceInterface
+     */
+    public function getAuthenticationService(ServerRequestInterface $request): AuthenticationServiceInterface
+    {
+        $service = new AuthenticationService();
+
+        // Define where users should be redirected to when they are not authenticated
+        $service->setConfig([
+            'unauthenticatedRedirect' => [
+                'prefix' => false,
+                'plugin' => null,
+                'controller' => 'Users',
+                'action' => 'login',
+            ],
+            'queryParam' => 'redirect',
+        ]);
+
+        $fields = [
+            PasswordIdentifier::CREDENTIAL_USERNAME => 'email',
+            PasswordIdentifier::CREDENTIAL_PASSWORD => 'password',
+        ];
+
+        // Load the authenticators. Session should be first.
+        $service->loadAuthenticator('Authentication.Session');
+        $service->loadAuthenticator('Authentication.Form', [
+            'fields' => $fields,
+            'loginUrl' => [
+                'prefix' => false,
+                'plugin' => null,
+                'controller' => 'Users',
+                'action' => 'login',
+            ],
+            'identifier' => [
+                'className' => 'Authentication.Password',
+                'fields' => $fields,
+            ],
+        ]);
+
+        return $service;
+    }
+
+    /**
+     * Returns an authorization service instance.
+     *
+     * @param \Psr\Http\Message\ServerRequestInterface $request The request.
+     * @return \Authorization\AuthorizationServiceInterface
+     */
+    public function getAuthorizationService(ServerRequestInterface $request): AuthorizationServiceInterface
+    {
+        $resolver = new OrmResolver();
+
+        return new AuthorizationService($resolver);
     }
 }

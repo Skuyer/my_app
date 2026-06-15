@@ -1,20 +1,34 @@
-<div class="articles form content">
-    <?= $this->Form->create($article) ?>
-    <fieldset>
-        <legend><?= __('Añadir Artículo') ?></legend>
-        <?php
-            echo $this->Form->control('title', ['label' => 'Título del Artículo']);
-            echo $this->Form->control('body', ['rows' => '5', 'label' => 'Contenido']);
-            echo $this->Form->control('published', ['label' => '¿Publicar inmediatamente?']);
-            
-            // CONFIGURADO: Forzado a renderizar una lista de selección múltiple con altura fija
-            echo $this->Form->control('tags._ids', [
-                'options' => $tags, 
-                'label' => 'Tags',
-                'style' => 'height: 100px;'
-            ]);
-        ?>
-    </fieldset>
-    <?= $this->Form->button(__('Guardar Artículo')) ?>
-    <?= $this->Form->end() ?>
+<?php
+/**
+ * @var \App\View\AppView $this
+ * @var \App\Model\Entity\Article $article
+ * @var \Cake\Collection\CollectionInterface|string[] $users
+ * @var \Cake\Collection\CollectionInterface|string[] $tags
+ */
+?>
+<div class="row">
+    <aside class="column">
+        <div class="side-nav">
+            <h4 class="heading"><?= __('Actions') ?></h4>
+            <?= $this->Html->link(__('List Articles'), ['action' => 'index'], ['class' => 'side-nav-item']) ?>
+        </div>
+    </aside>
+    <div class="column column-80">
+        <div class="articles form content">
+            <?= $this->Form->create($article) ?>
+            <fieldset>
+                <legend><?= __('Add Article') ?></legend>
+                <?php
+                    echo $this->Form->control('user_id', ['options' => $users]);
+                    echo $this->Form->control('title');
+                    echo $this->Form->control('slug');
+                    echo $this->Form->control('body');
+                    echo $this->Form->control('published');
+                    echo $this->Form->control('tags._ids', ['options' => $tags]);
+                ?>
+            </fieldset>
+            <?= $this->Form->button(__('Submit')) ?>
+            <?= $this->Form->end() ?>
+        </div>
+    </div>
 </div>

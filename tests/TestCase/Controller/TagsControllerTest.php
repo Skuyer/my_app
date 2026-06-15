@@ -3,16 +3,16 @@ declare(strict_types=1);
 
 namespace App\Test\TestCase\Controller;
 
-use App\Controller\ArticlesController;
+use App\Controller\TagsController;
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 
 /**
- * App\Controller\ArticlesController Test Case
+ * App\Controller\TagsController Test Case
  *
- * @link \App\Controller\ArticlesController
+ * @link \App\Controller\TagsController
  */
-class ArticlesControllerTest extends TestCase
+class TagsControllerTest extends TestCase
 {
     use IntegrationTestTrait;
 
@@ -22,9 +22,8 @@ class ArticlesControllerTest extends TestCase
      * @var array<string>
      */
     protected array $fixtures = [
-        'app.Articles',
-        'app.Users',
         'app.Tags',
+        'app.Articles',
         'app.ArticlesTags',
     ];
 
@@ -32,7 +31,7 @@ class ArticlesControllerTest extends TestCase
      * Test index method
      *
      * @return void
-     * @link \App\Controller\ArticlesController::index()
+     * @link \App\Controller\TagsController::index()
      */
     public function testIndex(): void
     {
@@ -43,7 +42,7 @@ class ArticlesControllerTest extends TestCase
      * Test view method
      *
      * @return void
-     * @link \App\Controller\ArticlesController::view()
+     * @link \App\Controller\TagsController::view()
      */
     public function testView(): void
     {
@@ -54,7 +53,7 @@ class ArticlesControllerTest extends TestCase
      * Test add method
      *
      * @return void
-     * @link \App\Controller\ArticlesController::add()
+     * @link \App\Controller\TagsController::add()
      */
     public function testAdd(): void
     {
@@ -65,7 +64,7 @@ class ArticlesControllerTest extends TestCase
      * Test edit method
      *
      * @return void
-     * @link \App\Controller\ArticlesController::edit()
+     * @link \App\Controller\TagsController::edit()
      */
     public function testEdit(): void
     {
@@ -76,7 +75,7 @@ class ArticlesControllerTest extends TestCase
      * Test delete method
      *
      * @return void
-     * @link \App\Controller\ArticlesController::delete()
+     * @link \App\Controller\TagsController::delete()
      */
     public function testDelete(): void
     {
