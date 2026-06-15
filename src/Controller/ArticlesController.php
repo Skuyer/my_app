@@ -12,8 +12,6 @@ class ArticlesController extends AppController
 {
     /**
      * Index method
-     *
-     * @return \Cake\Http\Response|null|void Renders view
      */
     public function index()
     {
@@ -25,66 +23,56 @@ class ArticlesController extends AppController
 
     /**
      * View method
-     *
-     * @param string|null $id Article id.
-     * @return \Cake\Http\Response|null|void Renders view
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
      */
     public function view($id = null)
     {
-        $article = $this->Articles->get($id, contain: []);
+        // Si usas IDs numéricos, se queda con get()
+        $article = $this->Articles->get($id, contain: ['Tags']);
         $this->set(compact('article'));
     }
 
     /**
      * Add method
-     *
-     * @return \Cake\Http\Response|null|void Redirects on successful add, renders view otherwise.
      */
-    public function add(){
+    public function add()
+    {
         $article = $this->Articles->newEmptyEntity();
         if ($this->request->is('post')) {
             $article = $this->Articles->patchEntity($article, $this->request->getData());
-            if ($this->Articles->save($article)) { // <-- Aquí faltaba tabular bien y cerrar este if abajo
+            if ($this->Articles->save($article)) {
                 $this->Flash->success(__('Tu artículo ha sido guardado.'));
                 return $this->redirect(['action' => 'index']);
-            } // <-- Esta llave de cierre NO estaba en tu código original
+            }
             $this->Flash->error(__('No se pudo añadir tu artículo.'));
         }
         
+        // Carga la lista de tags para el formulario multi-select
         $tags = $this->Articles->Tags->find('list', limit: 200)->all();
-        
         $this->set(compact('article', 'tags'));
     }
 
     /**
      * Edit method
-     *
-     * @param string|null $id Article id.
-     * @return \Cake\Http\Response|null|void Redirects on successful edit, renders view otherwise.
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
      */
     public function edit($id = null)
     {
-        $article = $this->Articles->get($id, contain: []);
+        // Si usas IDs numéricos, se queda con get()
+        $article = $this->Articles->get($id, contain: ['Tags']);
         if ($this->request->is(['patch', 'post', 'put'])) {
             $article = $this->Articles->patchEntity($article, $this->request->getData());
             if ($this->Articles->save($article)) {
                 $this->Flash->success(__('The article has been saved.'));
-
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('The article could not be saved. Please, try again.'));
         }
-        $this->set(compact('article'));
+        
+        $tags = $this->Articles->Tags->find('list', limit: 200)->all();
+        $this->set(compact('article', 'tags'));
     }
 
     /**
      * Delete method
-     *
-     * @param string|null $id Article id.
-     * @return \Cake\Http\Response|null Redirects to index.
-     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
      */
     public function delete($id = null)
     {
@@ -98,9 +86,13 @@ class ArticlesController extends AppController
 
         return $this->redirect(['action' => 'index']);
     }
-    public function tags(...$tags){
-        $articles = $this->Articles->find('tagged', tags: $tags)
-            ->all();
+
+    /**
+     * Tags method
+     */
+    public function tags(...$tags)
+    {
+        $articles = $this->Articles->find('tagged', tags: $tags)->all();
         $this->set([
             'articles' => $articles,
             'tags' => $tags
