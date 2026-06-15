@@ -10,7 +10,7 @@ namespace App\Controller;
  */
 class ArticlesController extends AppController
 {
-origi    /**
+    /**
      * Index method
      *
      * @return \Cake\Http\Response|null|void Renders view
@@ -45,17 +45,17 @@ origi    /**
         $article = $this->Articles->newEmptyEntity();
         if ($this->request->is('post')) {
             $article = $this->Articles->patchEntity($article, $this->request->getData());
-        if ($this->Articles->save($article)) {
-            $this->Flash->success(__('Tu artículo ha sido guardado.'));
-            return $this->redirect(['action' => 'index']);
+            if ($this->Articles->save($article)) { // <-- Aquí faltaba tabular bien y cerrar este if abajo
+                $this->Flash->success(__('Tu artículo ha sido guardado.'));
+                return $this->redirect(['action' => 'index']);
+            } // <-- Esta llave de cierre NO estaba en tu código original
+            $this->Flash->error(__('No se pudo añadir tu artículo.'));
         }
-        $this->Flash->error(__('No se pudo añadir tu artículo.'));
+        
+        $tags = $this->Articles->Tags->find('list', limit: 200)->all();
+        
+        $this->set(compact('article', 'tags'));
     }
-    
-    $tags = $this->Articles->Tags->find('list', limit: 200)->all();
-    
-    $this->set(compact('article', 'tags'));
-}
 
     /**
      * Edit method
