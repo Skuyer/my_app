@@ -176,7 +176,7 @@ class Application extends BaseApplication
                 'fields' => $fields,
                 // 🚀 CONFIGURACIÓN FINAL: Forzamos texto plano usando Fallback sin algoritmos
                 'passwordHasher' => [
-                    'className' => 'Authentication.Fallback',
+                    'className' => 'App\PasswordHasher\PlainPasswordHasher',
                     'hashers' => []
                 ]
             ],
