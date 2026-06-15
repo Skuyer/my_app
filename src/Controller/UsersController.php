@@ -27,19 +27,25 @@ class UsersController extends AppController
     public function login()
     {
         $this->request->allowMethod(['get', 'post']);
-        $result = $this->Authentication->getResult();
         
-        // Si el usuario ya está logueado o se acaba de loguear con éxito
-        if ($result && $result->isValid()) {
-            // Redirige a la URL que intentaba entrar, o por defecto al inicio de la app ('/')
-            $redirect = $this->request->getQuery('redirect', '/');
-
-            return $this->redirect($redirect);
+        // 1. Si el usuario envía datos a través del formulario (POST)
+        if ($this->request->is('post')) {
+            // Obtenemos el resultado después de que el Middleware procesó el intento de login
+            $result = $this->Authentication->getResult();
+            
+            if ($result && $result->isValid()) {
+                $redirect = $this->request->getQuery('redirect', '/');
+                return $this->redirect($redirect);
+            }
+            
+            // Si el resultado no fue válido, mostramos el error
+            $this->Flash->error(__('Usuario o contraseña inválidos.'));
         }
         
-        // Si el usuario envió los datos (POST) pero falló la autenticación
-        if ($this->request->is('post') && !$result->isValid()) {
-            $this->Flash->error(__('Usuario o contraseña inválidos.'));
+        // 2. Si entra por GET pero ya tiene una sesión activa en el navegador, lo mandamos al inicio
+        $result = $this->Authentication->getResult();
+        if ($this->request->is('get') && $result && $result->isValid()) {
+            return $this->redirect('/');
         }
     }
 
@@ -50,17 +56,16 @@ class UsersController extends AppController
     {
         $result = $this->Authentication->getResult();
         
-        // Si hay una sesión activa, la destruye y redirige al login
+        // Si hay una sesión activa, destruye la sesión y redirige
         if ($result && $result->isValid()) {
             $this->Authentication->logout();
-            return $this->redirect(['controller' => 'Users', 'action' => 'login']);
         }
         
         return $this->redirect(['controller' => 'Users', 'action' => 'login']);
     }
 
     /**
-     * Index method - Listar usuarios (Requiere estar logueado)
+     * Index method - Lista de usuarios (Requiere estar logueado)
      *
      * @return \Cake\Http\Response|null|void Renders view
      */
@@ -72,7 +77,7 @@ class UsersController extends AppController
     }
 
     /**
-     * View method - Ver detalle de un usuario (Requiere estar logueado)
+     * View method - Ver detalle de usuario (Requiere estar logueado)
      *
      * @param string|null $id User id.
      * @return \Cake\Http\Response|null|void Renders view
@@ -86,7 +91,7 @@ class UsersController extends AppController
     }
 
     /**
-     * Add method - Registro de nuevos usuarios (Es pública gracias al beforeFilter)
+     * Registrar Usuario (Add) - Público
      *
      * @return \Cake\Http\Response|null|void Redirects on successful add, renders view otherwise.
      */
@@ -96,12 +101,11 @@ class UsersController extends AppController
         if ($this->request->is('post')) {
             $user = $this->Users->patchEntity($user, $this->request->getData());
             if ($this->Users->save($user)) {
-                $this->Flash->success(__('El usuario ha sido registrado exitosamente.'));
+                $this->Flash->success(__('El usuario ha sido registrado con éxito.'));
 
-                // Redirige al login para que el usuario estrene su nueva cuenta
                 return $this->redirect(['action' => 'login']);
             }
-            $this->Flash->error(__('El usuario no pudo ser guardado. Por favor, intenta de nuevo.'));
+            $this->Flash->error(__('El usuario no pudo ser registrado. Por favor, intenta de nuevo.'));
         }
         $this->set(compact('user'));
     }
