@@ -29,19 +29,17 @@ class UsersController extends AppController
         $this->request->allowMethod(['get', 'post']);
         $result = $this->Authentication->getResult();
         
-        // Si el usuario ya está logueado, redirigir a donde iba o a los artículos
+        // Si el usuario ya está logueado o se acaba de loguear con éxito
         if ($result && $result->isValid()) {
-            $redirect = $this->request->getQuery('redirect', [
-                'controller' => 'Articles',
-                'action' => 'index',
-            ]);
+            // Redirige a la URL que intentaba entrar, o por defecto al inicio de la app ('/')
+            $redirect = $this->request->getQuery('redirect', '/');
 
             return $this->redirect($redirect);
         }
         
         // Si el usuario envió los datos (POST) pero falló la autenticación
         if ($this->request->is('post') && !$result->isValid()) {
-            $this->Flash->error(__('Email o contraseña inválidos'));
+            $this->Flash->error(__('Usuario o contraseña inválidos.'));
         }
     }
 
@@ -52,28 +50,29 @@ class UsersController extends AppController
     {
         $result = $this->Authentication->getResult();
         
-        // Si está logueado, destruye la sesión y redirígelo al login
+        // Si hay una sesión activa, la destruye y redirige al login
         if ($result && $result->isValid()) {
             $this->Authentication->logout();
             return $this->redirect(['controller' => 'Users', 'action' => 'login']);
         }
+        
+        return $this->redirect(['controller' => 'Users', 'action' => 'login']);
     }
 
     /**
-     * Index method
+     * Index method - Listar usuarios (Requiere estar logueado)
      *
      * @return \Cake\Http\Response|null|void Renders view
      */
     public function index()
     {
-        $query = $this->Users->find();
-        $users = $this->paginate($query);
+        $users = $this->paginate($this->Users);
 
         $this->set(compact('users'));
     }
 
     /**
-     * View method
+     * View method - Ver detalle de un usuario (Requiere estar logueado)
      *
      * @param string|null $id User id.
      * @return \Cake\Http\Response|null|void Renders view
@@ -82,11 +81,12 @@ class UsersController extends AppController
     public function view($id = null)
     {
         $user = $this->Users->get($id, contain: []);
+
         $this->set(compact('user'));
     }
 
     /**
-     * Add method (Registro de usuarios)
+     * Add method - Registro de nuevos usuarios (Es pública gracias al beforeFilter)
      *
      * @return \Cake\Http\Response|null|void Redirects on successful add, renders view otherwise.
      */
@@ -96,17 +96,18 @@ class UsersController extends AppController
         if ($this->request->is('post')) {
             $user = $this->Users->patchEntity($user, $this->request->getData());
             if ($this->Users->save($user)) {
-                $this->Flash->success(__('The user has been saved.'));
+                $this->Flash->success(__('El usuario ha sido registrado exitosamente.'));
 
-                return $this->redirect(['action' => 'index']);
+                // Redirige al login para que el usuario estrene su nueva cuenta
+                return $this->redirect(['action' => 'login']);
             }
-            $this->Flash->error(__('The user could not be saved. Please, try again.'));
+            $this->Flash->error(__('El usuario no pudo ser guardado. Por favor, intenta de nuevo.'));
         }
         $this->set(compact('user'));
     }
 
     /**
-     * Edit method
+     * Edit method - Editar un usuario (Requiere estar logueado)
      *
      * @param string|null $id User id.
      * @return \Cake\Http\Response|null|void Redirects on successful edit, renders view otherwise.
@@ -118,17 +119,17 @@ class UsersController extends AppController
         if ($this->request->is(['patch', 'post', 'put'])) {
             $user = $this->Users->patchEntity($user, $this->request->getData());
             if ($this->Users->save($user)) {
-                $this->Flash->success(__('The user has been saved.'));
+                $this->Flash->success(__('El usuario ha sido actualizado.'));
 
                 return $this->redirect(['action' => 'index']);
             }
-            $this->Flash->error(__('The user could not be saved. Please, try again.'));
+            $this->Flash->error(__('El usuario no pudo ser actualizado. Por favor, intenta de nuevo.'));
         }
         $this->set(compact('user'));
     }
 
     /**
-     * Delete method
+     * Delete method - Eliminar un usuario (Requiere estar logueado)
      *
      * @param string|null $id User id.
      * @return \Cake\Http\Response|null Redirects to index.
@@ -139,9 +140,9 @@ class UsersController extends AppController
         $this->request->allowMethod(['post', 'delete']);
         $user = $this->Users->get($id);
         if ($this->Users->delete($user)) {
-            $this->Flash->success(__('The user has been deleted.'));
+            $this->Flash->success(__('El usuario ha sido eliminado.'));
         } else {
-            $this->Flash->error(__('The user could not be deleted. Please, try again.'));
+            $this->Flash->error(__('El usuario no pudo ser eliminado. Por favor, intenta de nuevo.'));
         }
 
         return $this->redirect(['action' => 'index']);
