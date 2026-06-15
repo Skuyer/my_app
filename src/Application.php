@@ -136,17 +136,17 @@ class Application extends BaseApplication
         return $eventManager;
     }
 
-    /**
-     * Returns a service provider instance.
+   /**
+     * Returns an authentication service instance.
      *
-     * @param \Psr\Http\Message\ServerRequestInterface $request The request.
+     * @param \Psr\\Http\\Message\\ServerRequestInterface $request The request.
      * @return \Authentication\AuthenticationServiceInterface
      */
     public function getAuthenticationService(ServerRequestInterface $request): AuthenticationServiceInterface
     {
         $service = new AuthenticationService();
 
-        // Define where users should be redirected to when they are not authenticated
+        // Define where users should be redirected when they are not authenticated
         $service->setConfig([
             'unauthenticatedRedirect' => [
                 'prefix' => false,
@@ -175,6 +175,10 @@ class Application extends BaseApplication
             'identifier' => [
                 'className' => 'Authentication.Password',
                 'fields' => $fields,
+                // 🚀 ESTA CONFIGURACIÓN le dice a CakePHP que lea la contraseña en TEXTO PLANO
+                'passwordHasher' => [
+                    'className' => 'Authentication.None',
+                ]
             ],
         ]);
 

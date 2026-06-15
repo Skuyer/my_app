@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace App\Model\Entity;
 
 use Cake\ORM\Entity;
-use Authentication\PasswordHasher\DefaultPasswordHasher;
 
 /**
  * User Entity
@@ -26,7 +25,7 @@ class User extends Entity
      * @var array<string, bool>
      */
     protected array $_accessible = [
-        'username' => true,  // 🚀 Aseguramos que CakePHP pueda mapear esta columna si es necesario
+        'username' => true,
         'email' => true,
         'password' => true,
         'created' => true,
@@ -43,18 +42,5 @@ class User extends Entity
         'password',
     ];
 
-    /**
-     * Hash password automatically when it is set.
-     *
-     * @param string $password Password to hash
-     * @return string|null
-     */
-    protected function _setPassword(string $password): ?string
-    {
-        if (strlen($password) > 0) {
-            return (new DefaultPasswordHasher())->hash($password);
-        }
-
-        return null;
-    }
+    // 🚀 SE ELIMINÓ LA FUNCIÓN _setPassword PARA QUE NO ENCRIPTE AL GUARDAR
 }
