@@ -10,7 +10,11 @@ namespace App\Controller;
  */
 class ArticlesController extends AppController
 {
-
+origi    /**
+     * Index method
+     *
+     * @return \Cake\Http\Response|null|void Renders view
+     */
     public function index()
     {
         $query = $this->Articles->find();
@@ -19,41 +23,50 @@ class ArticlesController extends AppController
         $this->set(compact('articles'));
     }
 
-    public function view($slug = null)
+    /**
+     * View method
+     *
+     * @param string|null $id Article id.
+     * @return \Cake\Http\Response|null|void Renders view
+     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
+     */
+    public function view($id = null)
     {
-        if (empty($slug)) {
-            throw new \Cake\Http\Exception\NotFoundException(__('Artículo no encontrado'));
-        }
-        $article = $this->Articles->findBySlug($slug)->firstOrFail();
+        $article = $this->Articles->get($id, contain: []);
         $this->set(compact('article'));
     }
 
-    public function add()
-    {
+    /**
+     * Add method
+     *
+     * @return \Cake\Http\Response|null|void Redirects on successful add, renders view otherwise.
+     */
+    public function add(){
         $article = $this->Articles->newEmptyEntity();
         if ($this->request->is('post')) {
             $article = $this->Articles->patchEntity($article, $this->request->getData());
-            
-            $article->user_id = 1; 
-
-            if ($this->Articles->save($article)) {
-                $this->Flash->success(__('The article has been saved.'));
-
-                return $this->redirect(['action' => 'index']);
-            }
-            $this->Flash->error(__('The article could not be saved. Please, try again.'));
+        if ($this->Articles->save($article)) {
+            $this->Flash->success(__('Tu artículo ha sido guardado.'));
+            return $this->redirect(['action' => 'index']);
         }
-        $this->set(compact('article'));
+        $this->Flash->error(__('No se pudo añadir tu artículo.'));
     }
+    
+    $tags = $this->Articles->Tags->find('list', limit: 200)->all();
+    
+    $this->set(compact('article', 'tags'));
+}
 
-    public function edit($slug = null)
+    /**
+     * Edit method
+     *
+     * @param string|null $id Article id.
+     * @return \Cake\Http\Response|null|void Redirects on successful edit, renders view otherwise.
+     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
+     */
+    public function edit($id = null)
     {
-        if (empty($slug)) {
-            throw new \Cake\Http\Exception\NotFoundException(__('Artículo no encontrado'));
-        }
-
-        $article = $this->Articles->findBySlug($slug)->firstOrFail();
-        
+        $article = $this->Articles->get($id, contain: []);
         if ($this->request->is(['patch', 'post', 'put'])) {
             $article = $this->Articles->patchEntity($article, $this->request->getData());
             if ($this->Articles->save($article)) {
@@ -66,17 +79,17 @@ class ArticlesController extends AppController
         $this->set(compact('article'));
     }
 
-    public function delete($slug = null)
+    /**
+     * Delete method
+     *
+     * @param string|null $id Article id.
+     * @return \Cake\Http\Response|null Redirects to index.
+     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
+     */
+    public function delete($id = null)
     {
         $this->request->allowMethod(['post', 'delete']);
-        
-        if (empty($slug)) {
-            throw new \Cake\Http\Exception\NotFoundException(__('Artículo no encontrado'));
-        }
-
-
-        $article = $this->Articles->findBySlug($slug)->firstOrFail();
-        
+        $article = $this->Articles->get($id);
         if ($this->Articles->delete($article)) {
             $this->Flash->success(__('The article has been deleted.'));
         } else {
@@ -84,5 +97,13 @@ class ArticlesController extends AppController
         }
 
         return $this->redirect(['action' => 'index']);
+    }
+    public function tags(...$tags){
+        $articles = $this->Articles->find('tagged', tags: $tags)
+            ->all();
+        $this->set([
+            'articles' => $articles,
+            'tags' => $tags
+        ]);
     }
 }
