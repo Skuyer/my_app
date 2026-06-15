@@ -6,9 +6,59 @@ namespace App\Controller;
 /**
  * Users Controller
  *
+ * @property \App\Model\Table\UsersTable $Users
  */
 class UsersController extends AppController
 {
+    /**
+     * Configuración de acciones públicas que no requieren inicio de sesión.
+     */
+    public function beforeFilter(\Cake\Event\EventInterface $event)
+    {
+        parent::beforeFilter($event);
+        
+        // Permitir que el login y el registro (add) sean públicos
+        $this->Authentication->addUnauthenticatedActions(['login', 'add']);
+    }
+
+    /**
+     * Iniciar Sesión (Login)
+     */
+    public function login()
+    {
+        $this->request->allowMethod(['get', 'post']);
+        $result = $this->Authentication->getResult();
+        
+        // Si el usuario ya está logueado, redirigir a donde iba o a los artículos
+        if ($result && $result->isValid()) {
+            $redirect = $this->request->getQuery('redirect', [
+                'controller' => 'Articles',
+                'action' => 'index',
+            ]);
+
+            return $this->redirect($redirect);
+        }
+        
+        // Si el usuario envió los datos (POST) pero falló la autenticación
+        if ($this->request->is('post') && !$result->isValid()) {
+            $this->Flash->error(__('Email o contraseña inválidos'));
+        }
+    }
+
+    /**
+     * Cerrar Sesión (Logout)
+     */
+    public function logout()
+    {
+        $result = $this->Authentication->getResult();
+        
+        // Si está logueado, destruye la sesión y redirígelo al login
+        if ($result && $result->isValid()) {
+            $this->Authentication->logout();
+            return $this->redirect(['controller' => 'Users', 'action' => 'login']);
+        }
+    }
+
     /**
      * Index method
      *
@@ -36,7 +86,7 @@ class UsersController extends AppController
     }
 
     /**
-     * Add method
+     * Add method (Registro de usuarios)
      *
      * @return \Cake\Http\Response|null|void Redirects on successful add, renders view otherwise.
      */
